@@ -2,21 +2,20 @@
 using NetMQ.Sockets;
 using System.Diagnostics;
 
-namespace tradepathcapital
+namespace TradePathCapital.Publishers
 {
 	internal sealed class TpcDataReader : IDisposable
 	{
-		FileStream? _stream;
-		StreamReader? _reader;
-		string _path;
-		string _host;
+		private FileStream _stream;
+		private StreamReader _reader;
+		private string _path;
+		private string _host;
 
 		public int Id { get; private set; }
 		public bool Active { get; private set; }
 
 		internal TpcDataReader(string host, string path, int id)
 		{
-			
 			_path = path;
 			_host = host;
 			Id = id;
@@ -28,9 +27,11 @@ namespace tradepathcapital
 			Active = false;
 
 			if (_reader != null)
-				try { _reader.Close(); } finally { _reader = null; }
+				try { _reader.Close(); }
+				finally { }
 			if (_stream != null)
-				try { _stream.Close(); } finally { _stream = null; }
+				try { _stream.Close(); }
+				finally { }
 
 		}
 
@@ -38,17 +39,34 @@ namespace tradepathcapital
 		{
 			using (var client = new DealerSocket(_host))
 			{
+
 				using (_stream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, true))
 				using (_reader = new StreamReader(_stream))
 				{
-					//int i = 1;
+#if DEBUG
+					int i = 1;
+#endif
 					string s = _reader.ReadLine();
 					while ((s = await _reader.ReadLineAsync()) != string.Empty)
 					{
-						client.SendFrame($"{Id}#{s}");
-						//i++;
-						//if (i % 1000 == 0)
-						//	Debug.WriteLine($"{ID}: {i}");
+#if DEBUG
+						try
+						{
+#endif
+							var item = new TpcData(Id, s);
+							var json = TpcData.SerializeToJson(item);
+							client.SendFrame(json);
+#if DEBUG
+						}
+						catch (Exception ex)
+						{
+							Debug.WriteLine(s);
+							Debug.WriteLine(ex.Message);
+						}
+						i++;
+						if (i % 1000 == 0)
+							Debug.WriteLine($"{Id}: {i}");
+#endif
 						// TODO How to walk around this delay stuff? It's realy slow down speed
 						await Task.Delay(1);
 					}

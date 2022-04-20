@@ -1,48 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace tradepathcapital
+namespace TradePathCapital
 {
-	public class TpcData : ITpcData
+	public sealed class TpcData : ITpcData
 	{
 		private int _id;
-		private string _content;
-		const char SHARP = '#';
+		private string[] _content;
+		private DateTime _dateTime;
 
 		public int Id { get => _id; }
-		public string Content { get => _content; }
+		public string[] Content { get => _content; }
+		public DateTime DateTime { get => _dateTime; }
 
-		public TpcData(int id, string content)
+		[JsonConstructor]
+		public TpcData(int Id, DateTime DateTime, string[] Content)
+		{
+			// {"Id":1,"DateTime":"2022-04-14T04:00:00.017611","Content":["170.52","100","100","170.08","170.36","1","E","26","17",""]}
+			_id = Id;
+			_content = Content;
+			_dateTime = DateTime;
+		}
+
+		public TpcData(int id, string nessage)
 		{
 			_id = id;
-			_content = content;
+			
+			var a = nessage.Split(',');
+			
+			DateTime.TryParse(a.First(), out _dateTime);
+			
+			_content = a.Skip(1).ToArray();
 		}
 
-		public override string ToString()
+		public static string SerializeToJson(ITpcData item)
 		{
-			return $"{_id}{SHARP}{_content}";
+			return JsonSerializer.Serialize<TpcData>(item as TpcData);
 		}
 
-		public static TpcData FromString(string data)
+		public static ITpcData DeserializeFromJson(string json)
 		{
-			if (string.IsNullOrEmpty(data)) throw new ArgumentNullException("data");
-			var i = data.IndexOf(SHARP);
-			if (i == -1) throw new ArgumentException("data");
-			var id = Convert.ToInt32(data.Substring(0, i));
-			var content = data.Substring(i + 1);
-			return new TpcData(id, content);
+			return JsonSerializer.Deserialize(json, typeof(TpcData)) as ITpcData;
 		}
-
-
-	}
-
-	public interface ITpcData
-	{
-		int Id { get; }
-		string Content { get; }
 	}
 }

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tradepathcapital", "tradepathcapital\tradepathcapital.csproj", "{851D09AA-EC3A-4BB4-BDCF-A2CCC09A6FFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradePathCapital", "tradepathcapital\TradePathCapital.csproj", "{851D09AA-EC3A-4BB4-BDCF-A2CCC09A6FFA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradePathCapital.Subscribers", "tradepathcapital.subscribers\TradePathCapital.Subscribers.csproj", "{130A9856-915B-49BB-BF18-ABF768D6A50F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradePathCapital.Publishers", "tradepathcapital.publishers\TradePathCapital.Publishers.csproj", "{95AED01E-16F4-46B5-86E7-EC325D5A1607}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{851D09AA-EC3A-4BB4-BDCF-A2CCC09A6FFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{851D09AA-EC3A-4BB4-BDCF-A2CCC09A6FFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{851D09AA-EC3A-4BB4-BDCF-A2CCC09A6FFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{130A9856-915B-49BB-BF18-ABF768D6A50F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{130A9856-915B-49BB-BF18-ABF768D6A50F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{130A9856-915B-49BB-BF18-ABF768D6A50F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{130A9856-915B-49BB-BF18-ABF768D6A50F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95AED01E-16F4-46B5-86E7-EC325D5A1607}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95AED01E-16F4-46B5-86E7-EC325D5A1607}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95AED01E-16F4-46B5-86E7-EC325D5A1607}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95AED01E-16F4-46B5-86E7-EC325D5A1607}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
