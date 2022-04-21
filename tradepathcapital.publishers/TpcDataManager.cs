@@ -11,19 +11,21 @@ namespace TradePathCapital.Publishers
 		private List<TpcDataReader> _readers;
 		private SortedDictionary<DateTime, IList<ITpcData>> _data;
 		private TpcPublisher _publisher;
-
-		internal TpcDataManager()
+		private ITpcDataManagerProperties _managerProperties;
+		private ITpcPublisherProperties _publisherProperties;
+	
+		internal TpcDataManager(ITpcDataManagerProperties managerProperties, ITpcPublisherProperties publisherProperties)
 		{
+			_managerProperties = managerProperties;
+			_publisherProperties = publisherProperties;
+
 			_data = new SortedDictionary<DateTime, IList<ITpcData>>();
 			_readers = new List<TpcDataReader>();
 
-			for (int i = 0; i < TpcProperties.Config.Files.Length; i++)
-				_readers.Add(new TpcDataReader(
-					TpcProperties.Config.ManagerHost,
-					TpcProperties.Config.Files[i],
-					i));
+			for (int i = 0; i < _managerProperties.Files.Length; i++)
+				_readers.Add(new TpcDataReader(_managerProperties.ManagerHost, _managerProperties.Files[i], i));
 			
-			_publisher = new TpcPublisher(TpcProperties.Config.PublisherHost);
+			_publisher = new TpcPublisher(_publisherProperties.PublisherHost);
 
 			_runtime = new NetMQRuntime();
 		}
@@ -44,7 +46,7 @@ namespace TradePathCapital.Publishers
 
 		internal async Task ServerAsync()
 		{
-			using (var server = new RouterSocket(TpcProperties.Config.ManagerHost))
+			using (var server = new RouterSocket(_managerProperties.ManagerHost))
 			{
 				while (_readers.Select(x => x.Active).Count() > 0)
 				{

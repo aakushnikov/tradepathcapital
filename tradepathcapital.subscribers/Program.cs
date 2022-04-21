@@ -1,21 +1,29 @@
-﻿using System.Diagnostics;
-using TradePathCapital;
+﻿using TradePathCapital;
 using TradePathCapital.Subscribers;
 
 
-#if DEBUG
-try
-{
-#endif
-	var topics = Environment.GetCommandLineArgs().Skip(1);
+var topics = Environment.GetCommandLineArgs().Skip(1);
 
-	using (var subs = new TpcSubscriber())
-		foreach (var topicName in topics)
-			subs.Subscribe(TpcProperties.Config.PublisherHost, topicName);
-#if DEBUG
-}
-catch (Exception ex)
+var properties = new TpcProperties() as ITpcPublisherProperties;
+
+using (var subs = new TpcSubscriber(properties))
 {
-	Console.WriteLine(ex.Message);
-}
+	foreach (var topicName in topics)
+		subs.Subscribe(topicName);
+#if DEBUG
+	try
+	{
+		subs.Run();
+		while (true)
+		{
+			Console.ReadLine();
+			break;
+		}
+	}
+	catch (Exception ex)
+	{
+		Console.WriteLine(ex.Message);
+	}
 #endif
+}
+

@@ -2,48 +2,21 @@
 
 namespace TradePathCapital
 {
-	public class TpcProperties
+	public class TpcProperties : ITpcDataManagerProperties, ITpcPublisherProperties
 	{
 		private const string PUBLISHER_HOST_KEY = "publisher_host";
 		private const string MANAGER_HOST_KEY = "manager_host";
-		private const string PATH = "filespath";
 		private const string FILES_PREFIX = "file";
 
-		private static TpcProperties _instance;
+		private string _publisherHost;
+		private string _managerHost;
+		private string[] _files;
 
-		public string PublisherHost { get; private set; }
-		public string ManagerHost { get; private set; }
-		public string[] Files { get; private set; }
-
-		public static TpcProperties Config
+		public TpcProperties()
 		{
-			get
-			{
-				if (_instance == null)
-					_instance = new TpcProperties();
-				return _instance;
-			}
-		}
+			_publisherHost = ConfigurationManager.AppSettings[PUBLISHER_HOST_KEY]; ;
 
-		private TpcProperties()
-		{
-			var pHost = ConfigurationManager.AppSettings[PUBLISHER_HOST_KEY];
-			if (string.IsNullOrEmpty(pHost))
-				throw new ConfigurationErrorsException(
-					$"No host specified for a publisher in app.config: '{PUBLISHER_HOST_KEY}' key");
-			PublisherHost = pHost;
-
-			var mHost = ConfigurationManager.AppSettings[MANAGER_HOST_KEY];
-			if (string.IsNullOrEmpty(mHost))
-				throw new ConfigurationErrorsException(
-					$"No host specified for a manager in app.config: '{MANAGER_HOST_KEY}' key");
-			ManagerHost = mHost;
-
-			var path = ConfigurationManager.AppSettings[PATH];
-			if (!string.IsNullOrEmpty(path))
-				try { path = Path.GetFullPath(path); }
-				catch { throw new ConfigurationErrorsException(
-					$"Incorrect path specified in app.config: '{PATH}' key"); }
+			_managerHost = ConfigurationManager.AppSettings[MANAGER_HOST_KEY];
 
 			var files = new List<string>();
 			while (true)
@@ -52,14 +25,50 @@ namespace TradePathCapital
 
 				if (string.IsNullOrEmpty(filename)) break;
 
-				var filepath = Path.Join(path, filename);
-				files.Add(filepath);
+				try
+				{
+					Path.GetFullPath(filename);
+					files.Add(filename);
+				}
+				catch
+				{
+					files = null;
+					break;
+				}
 			}
+			if (files != null)
+				_files = files.ToArray();
+		}
 
-			if (files.Count == 0)
-				throw new ConfigurationErrorsException(
-					$"There is no files specified in app.config: '{FILES_PREFIX}N' key");
-			Files = files.ToArray();
+		public string PublisherHost
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(_publisherHost))
+					throw new ConfigurationErrorsException(
+						$"No host specified for a publisher in app.config: '{PUBLISHER_HOST_KEY}' key");
+				return _publisherHost;
+			}
+		}
+		public string ManagerHost
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(_managerHost))
+					throw new ConfigurationErrorsException(
+						$"No host specified for a manager in app.config: '{MANAGER_HOST_KEY}' key");
+				return _managerHost;
+			}
+		}
+		public string[] Files
+		{
+			get
+			{
+				if (_files == null || _files.Length == 0)
+					throw new ConfigurationErrorsException(
+						$"There is no files specified in app.config or at least one path value is incorrect or unacessable: '{FILES_PREFIX}N' key");
+				return _files;
+			}
 		}
 	}
 }

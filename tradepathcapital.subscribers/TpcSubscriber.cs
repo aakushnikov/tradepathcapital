@@ -1,43 +1,62 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
+using System.Collections.Specialized;
 
 namespace TradePathCapital.Subscribers
 {
 	internal sealed class TpcSubscriber : IDisposable
 	{
-        private List<SubscriberSocket> sockets;
+        private IList<ITpcListener> _listeners;
         private bool _disposed;
-		internal TpcSubscriber()
+        private ITpcPublisherProperties _properties;
+		internal TpcSubscriber(ITpcPublisherProperties properties)
 		{
-            sockets = new List<SubscriberSocket>();
+            _properties = properties;
+            _listeners = new List<ITpcListener>();
             _disposed = false;
         }
 
 		public void Dispose()
 		{
             _disposed = true;
-			foreach (SubscriberSocket socket in sockets)
-                try { socket.Dispose(); }
-                finally { sockets.Clear(); }
+			foreach (ITpcListener listener in _listeners)
+                try { listener.Disposed = true; listener.Socket.Dispose(); }
+                finally { }
 		}
 
-		internal async Task Subscribe(string host, string topic)
+        internal void Subscribe(string topicName)
 		{
             var socket = new SubscriberSocket();
-            sockets.Add(socket);
-            using (socket)
+            socket.Options.ReceiveHighWatermark = 1000;
+            socket.Connect(_properties.PublisherHost);
+            socket.Subscribe(topicName);
+
+            _listeners.Add(new TpcListener(new Thread(Listen), socket, topicName));
+        }
+
+        internal void Run()
+		{
+            foreach (ITpcListener listener in _listeners)
+                listener.Thread.Start(listener);
+		}
+
+        private void Listen(object data)
+		{
+            var listener = data as ITpcListener;
+
+            //Console.WriteLine($"Listening: {listener.TopicName}");
+            using (listener.Socket)
             {
-                socket.Options.ReceiveHighWatermark = 1000;
-                // "tcp://localhost:12345"
-                socket.Connect(host);
-                socket.Subscribe(topic);
-                while (!_disposed)
+                while (!listener.Disposed)
                 {
-                    var messageTopicReceived = await socket.ReceiveFrameStringAsync();
-                    if (!messageTopicReceived.Item2) continue;
-                    var message = await socket.ReceiveFrameStringAsync();
-                    if (message.Item1 == null) Task.Delay(100);
-                    Console.WriteLine(message.Item1);
+                    try
+                    {
+                        var topic = listener.Socket.ReceiveFrameString();
+                        var message = listener.Socket.ReceiveFrameString();
+                        Console.WriteLine(message);
+                    }
+                    catch (Exception ex)    
+                    { Console.WriteLine(ex.Message); }
                 }
             }
         }
